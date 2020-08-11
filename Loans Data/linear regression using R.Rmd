@@ -1,0 +1,95 @@
+---
+title: "LOANS DATA"
+output:
+---
+
+
+
+```{r}
+# load the data by using a path where it is stored.
+df<-read.csv("D:/data/Linear data/loans data.csv", stringsAsFactors = FALSE)
+head(df,3)
+
+#print number of rows and number of coloumns.
+print(nrow(df))
+print(ncol(df))
+
+# importing library(a grammar of data manupulation) 
+library(dplyr)
+
+# prints the data structure.
+glimpse(df)
+
+print (df$Amount.Requested)
+# impurity found in amount requested column.
+
+# this feature having a 3 catregarical feature.
+table(df$Home.Ownership)
+
+# finding the null value.
+table(is.na(df))
+
+
+  df<-df%>%
+  mutate(Interest.Rate=as.numeric(gsub("%","",Interest.Rate)),
+         Debt.To.Income.Ratio=as.numeric(gsub("%","",Debt.To.Income.Ratio)),
+         Loan.Length=as.numeric(gsub("months","",Loan.Length)),
+         Open.CREDIT.Lines=as.numeric(Open.CREDIT.Lines),
+         Amount.Requested=as.numeric(Amount.Requested),
+         Revolving.CREDIT.Balance=as.numeric(Revolving.CREDIT.Balance),
+         HW_RENT=as.numeric(Home.Ownership=="RENT"),
+         HW_MORT=as.numeric(Home.Ownership=="MORTGAGE")
+         )%>%
+   select(-Home.Ownership)%>%
+    na.omit()
+    
+glimpse(df)
+table(is.na(df))
+# now there is no any na value.
+
+# spliting the data train test
+# to randomize or suffle data before spliting tarin and test becouse data should not be biased.
+set.seed(123)
+
+# 1: all row ,0.7 taking 70% of row for test in s variable.
+s = sample(1: nrow(df), 0.7*nrow(df))
+
+df_train = df[s,]
+df_test = df[-s,]
+
+str(df_test) # 742 obs.of 11 variables.
+str(df_train) # 1730 obs. of 11 variables
+
+glimpse(df_train)
+
+
+# lm is model for linear regression
+lm_model<- lm(Interest.Rate~.-ID, data = df_train)
+summary(lm_model)
+# there is more data features are not important. lets deleat them.
+
+
+#install.packages("car")
+#library(car)
+
+#vif(lm_model)
+lm_model<- lm(Interest.Rate~.-ID-Debt.To.Income.Ratio -Monthly.Income -Open.CREDIT.Lines-HW_RENT-HW_MORT , data = df_train)
+summary(lm_model)
+
+y_pred =predict(lm_model,newdata = df_test)
+y_pred
+
+df_test$yprediction = y_pred
+df_test$yprediction
+
+#rmse
+mean((df_test$Interest.Rate-predict(fit,newdata=df_test))**2)%>%
+  sqrt()
+
+plot(fit,which=1, col="blue")
+plot(fit,which=2, col="pink")
+plot(fit,which=3, col="red")
+plot(fit,which=4, col="black")
+
+```
+
